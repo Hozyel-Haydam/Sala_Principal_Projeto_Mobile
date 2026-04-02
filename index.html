@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Sala Principal</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --purple-deep: #5B4FCF; --purple-mid: #7B6FE8; --purple-light: #A99FF5;
+    --purple-pale: #E8E5FF; --purple-bg: #F3F1FF; --white: #FFFFFF;
+    --gray-100: #F8F7FF; --gray-200: #EEECFF; --gray-400: #9B96C2;
+    --gray-600: #6B6494; --gray-800: #3D3760;
+    --success: #5CB88C; --warning: #F0A04B; --danger: #E87878;
+    --text-main: #2D2756; --text-sub: #7B76A8;
+    --shadow-sm: 0 2px 8px rgba(91,79,207,0.10);
+    --shadow-md: 0 4px 20px rgba(91,79,207,0.15);
+    --radius: 20px; --radius-sm: 12px;
+  }
+  html, body { height:100%; background:#E8E5FF; font-family:'Nunito',sans-serif; color:var(--text-main); overflow:hidden; }
+  .phone-wrapper { width:100%; max-width:400px; height:100vh; max-height:860px; margin:0 auto; position:relative; background:var(--gray-100); overflow:hidden; display:flex; flex-direction:column; }
+  .screen { position:absolute; inset:0; display:flex; flex-direction:column; opacity:0; pointer-events:none; transition:opacity .35s ease,transform .35s ease; transform:translateX(30px); background:var(--gray-100); overflow-y:auto; overflow-x:hidden; }
+  .screen.active { opacity:1; pointer-events:all; transform:translateX(0); }
+
+  /* SPLASH */
+  #splash { background:linear-gradient(160deg,var(--purple-deep) 0%,var(--purple-mid) 60%,var(--purple-light) 100%); justify-content:center; align-items:center; gap:16px; }
+  .splash-icon { width:90px; height:90px; background:rgba(255,255,255,.15); border-radius:28px; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(10px); box-shadow:0 8px 32px rgba(0,0,0,.15); }
+  .splash-icon svg { width:50px; height:50px; }
+  .splash-title { font-family:'Poppins',sans-serif; font-size:28px; font-weight:700; color:#fff; letter-spacing:-.5px; }
+  .splash-sub { font-size:14px; color:rgba(255,255,255,.75); font-weight:500; }
+  .splash-dot { width:8px; height:8px; background:rgba(255,255,255,.5); border-radius:50%; animation:pulse 1.4s infinite ease-in-out; margin-top:20px; }
+  @keyframes pulse { 0%,100%{transform:scale(1);opacity:.5}50%{transform:scale(1.3);opacity:1} }
+
+  /* AUTH */
+  #auth { background:linear-gradient(180deg,var(--purple-bg) 0%,var(--gray-100) 100%); padding:0; }
+  .auth-header { background:linear-gradient(160deg,var(--purple-deep),var(--purple-mid)); padding:60px 28px 40px; border-radius:0 0 36px 36px; text-align:center; }
+  .auth-logo { width:64px; height:64px; background:rgba(255,255,255,.2); border-radius:20px; display:flex; align-items:center; justify-content:center; margin:0 auto 14px; backdrop-filter:blur(10px); }
+  .auth-logo svg { width:36px; height:36px; }
+  .auth-header h1 { font-family:'Poppins',sans-serif; font-size:24px; font-weight:700; color:#fff; }
+  .auth-header p { font-size:13px; color:rgba(255,255,255,.8); margin-top:4px; }
+  .auth-tabs { display:flex; margin:24px 24px 0; background:var(--gray-200); border-radius:14px; padding:4px; gap:4px; }
+  .auth-tab { flex:1; padding:10px; border:none; background:transparent; border-radius:10px; font-family:'Nunito',sans-serif; font-size:14px; font-weight:700; color:var(--text-sub); cursor:pointer; transition:.2s; }
+  .auth-tab.active { background:var(--white); color:var(--purple-deep); box-shadow:var(--shadow-sm); }
+  .auth-form { padding:20px 24px 40px; display:flex; flex-direction:column; gap:14px; }
+  .auth-panel { display:none; flex-direction:column; gap:14px; }
+  .auth-panel.active { display:flex; }
+  .field-label { font-size:12px; font-weight:700; color:var(--gray-600); letter-spacing:.5px; text-transform:uppercase; margin-bottom:4px; }
+  .field-wrap { display:flex; flex-direction:column; }
+  .field-input { background:var(--white); border:2px solid var(--gray-200); border-radius:var(--radius-sm); padding:14px 16px; font-family:'Nunito',sans-serif; font-size:15px; font-weight:600; color:var(--text-main); outline:none; transition:.2s; }
+  .field-input:focus { border-color:var(--purple-mid); box-shadow:0 0 0 4px rgba(123,111,232,.12); }
+  .field-input::placeholder { color:var(--gray-400); font-weight:400; }
+  .btn-primary { background:linear-gradient(135deg,var(--purple-deep),var(--purple-mid)); color:#fff; border:none; border-radius:var(--radius-sm); padding:16px; font-family:'Nunito',sans-serif; font-size:16px; font-weight:800; cursor:pointer; transition:.2s; box-shadow:0 4px 16px rgba(91,79,207,.35); letter-spacing:.3px; }
+  .btn-primary:active { transform:scale(.97); }
+  .error-msg { background:#FFE8E8; border:1px solid #FFCACA; color:var(--danger); border-radius:10px; padding:10px 14px; font-size:13px; font-weight:600; display:none; }
+  .error-msg.show { display:block; }
+  .success-msg { background:#E8FFF3; border:1px solid #B8F0D4; color:var(--success); border-radius:10px; padding:10px 14px; font-size:13px; font-weight:600; display:none; }
+  .success-msg.show { display:block; }
+
+  /* HOME */
+  #home { background:var(--gray-100); }
+  .home-header { background:linear-gradient(160deg,var(--purple-deep) 0%,var(--purple-mid) 100%); padding:20px 24px 28px; border-radius:0 0 32px 32px; position:relative; overflow:hidden; }
+  .home-header::before { content:''; position:absolute; top:-40px; right:-40px; width:160px; height:160px; background:rgba(255,255,255,.08); border-radius:50%; }
+  .home-header::after { content:''; position:absolute; bottom:-60px; left:-20px; width:120px; height:120px; background:rgba(255,255,255,.05); border-radius:50%; }
+  .home-header-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+  .greeting { font-size:14px; color:rgba(255,255,255,.75); font-weight:500; }
+  .username-display { font-family:'Poppins',sans-serif; font-size:22px; font-weight:700; color:#fff; }
+  .logout-btn { background:rgba(255,255,255,.15); border:none; width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; cursor:pointer; backdrop-filter:blur(10px); transition:.2s; }
+  .logout-btn:active { transform:scale(.9); }
+  .logout-btn svg { width:20px; height:20px; }
+  .sector-badge { display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,.15); border-radius:20px; padding:6px 12px; font-size:12px; color:rgba(255,255,255,.9); font-weight:600; backdrop-filter:blur(10px); margin-top:10px; }
+  .sector-badge-dot { width:6px; height:6px; border-radius:50%; }
+
+  .home-body { padding:20px 20px 90px; display:flex; flex-direction:column; gap:16px; }
+  .home-page { display:none; overflow-y:auto; overflow-x:hidden; }
+  .home-page.active { display:flex; flex-direction:column; }
+
+  /* STATUS CARD */
+  .status-card { background:var(--white); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow-md); }
+  .status-card-title { font-size:11px; font-weight:800; letter-spacing:.8px; text-transform:uppercase; color:var(--text-sub); margin-bottom:14px; }
+  .sector-status-row { display:flex; align-items:center; gap:12px; padding:14px 16px; border-radius:var(--radius-sm); }
+  .sector-status-row.livre { background:#EDF9F2; }
+  .sector-status-row.parcial { background:#FFF8EC; }
+  .sector-status-row.total { background:#F0EDFF; }
+  .sector-status-icon { width:44px; height:44px; border-radius:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .livre .sector-status-icon { background:#C8F0DC; }
+  .parcial .sector-status-icon { background:#FFE8C0; }
+  .total .sector-status-icon { background:#D8D2FF; }
+  .sector-status-icon svg { width:22px; height:22px; }
+  .sector-status-info { flex:1; min-width:0; }
+  .sector-status-label { font-size:13px; font-weight:700; color:var(--text-main); }
+  .sector-status-sub { font-size:11px; color:var(--text-sub); margin-top:2px; font-weight:500; white-space:pre-line; line-height:1.6; }
+  .status-pill { font-size:11px; font-weight:800; padding:4px 10px; border-radius:20px; letter-spacing:.3px; flex-shrink:0; }
+  .livre .status-pill { background:#C8F0DC; color:#2E8B57; }
+  .parcial .status-pill { background:#FFE8C0; color:#B07000; }
+  .total .status-pill { background:#D8D2FF; color:#5B4FCF; }
+
+  /* ZONES GRID */
+  .zones-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .zone-card { background:var(--white); border-radius:var(--radius); padding:18px 16px; box-shadow:var(--shadow-sm); cursor:pointer; transition:.2s; position:relative; overflow:hidden; }
+  .zone-card::before { content:''; position:absolute; top:0; left:0; right:0; height:4px; border-radius:20px 20px 0 0; }
+  .zone-card.cozinha::before { background:linear-gradient(90deg,#F0A04B,#F5C87A); }
+  .zone-card.tv::before { background:linear-gradient(90deg,#7B6FE8,#A99FF5); }
+  .zone-card:active { transform:scale(.97); }
+  .zone-icon { width:48px; height:48px; border-radius:16px; display:flex; align-items:center; justify-content:center; margin-bottom:12px; }
+  .cozinha .zone-icon { background:#FFF3E0; }
+  .tv .zone-icon { background:#EDE9FF; }
+  .zone-icon svg { width:26px; height:26px; }
+  .zone-name { font-size:15px; font-weight:800; color:var(--text-main); }
+  .zone-user-info { margin-top:6px; }
+  .zone-user-chip { display:inline-flex; align-items:center; gap:5px; background:var(--gray-200); border-radius:20px; padding:4px 10px; font-size:11px; font-weight:700; color:var(--text-sub); margin-top:4px; }
+  .zone-user-chip.occupied { background:var(--purple-pale); color:var(--purple-deep); }
+  .zone-user-dot { width:6px; height:6px; border-radius:50%; background:currentColor; opacity:.6; }
+  .zone-free-label { font-size:12px; color:var(--gray-400); font-weight:500; margin-top:4px; }
+  .zone-action-btn { margin-top:12px; width:100%; border:none; border-radius:10px; padding:10px 0; font-family:'Nunito',sans-serif; font-size:13px; font-weight:800; cursor:pointer; transition:.2s; }
+  .zone-action-btn.usar { background:linear-gradient(135deg,var(--purple-deep),var(--purple-mid)); color:#fff; box-shadow:0 3px 10px rgba(91,79,207,.3); }
+  .zone-action-btn.liberar { background:#FFEAEA; color:var(--danger); }
+  .zone-action-btn.disabled { background:var(--gray-200); color:var(--gray-400); cursor:not-allowed; }
+  .zone-action-btn:active:not(.disabled) { transform:scale(.96); }
+
+  /* WARNING BANNER */
+  .warning-banner { display:flex; align-items:flex-start; gap:10px; background:#FFF8EC; border:1.5px solid #FFD99A; border-radius:var(--radius-sm); padding:13px 14px; margin-bottom:12px; }
+  .warning-emoji { font-size:20px; line-height:1; flex-shrink:0; margin-top:1px; }
+  .warning-text { font-size:12px; font-weight:600; color:#7A5200; line-height:1.55; }
+  .warning-text strong { display:block; font-size:13px; font-weight:800; color:#6A3E00; margin-bottom:2px; }
+
+  /* EXCLUSIVE LIST */
+  .excl-list { display:flex; flex-direction:column; gap:10px; }
+  .excl-card { background:var(--white); border-radius:var(--radius-sm); padding:14px 16px; box-shadow:var(--shadow-sm); display:flex; align-items:center; gap:12px; border-left:4px solid transparent; transition:.15s; }
+  .excl-card.in-use { border-left-color:var(--purple-mid); }
+  .excl-icon { width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .excl-icon svg { width:22px; height:22px; }
+  .excl-info { flex:1; min-width:0; }
+  .excl-name { font-size:13px; font-weight:800; color:var(--text-main); }
+  .excl-user { font-size:11px; color:var(--text-sub); font-weight:600; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .excl-btn { flex-shrink:0; border:none; border-radius:10px; padding:9px 14px; font-family:'Nunito',sans-serif; font-size:12px; font-weight:800; cursor:pointer; transition:.2s; white-space:nowrap; }
+  .excl-btn.usar { background:linear-gradient(135deg,var(--purple-deep),var(--purple-mid)); color:#fff; box-shadow:0 2px 8px rgba(91,79,207,.3); }
+  .excl-btn.liberar { background:#FFEAEA; color:var(--danger); }
+  .excl-btn.disabled { background:var(--gray-200); color:var(--gray-400); cursor:not-allowed; }
+  .excl-btn:active:not(.disabled) { transform:scale(.95); }
+
+  /* USERS */
+  .users-list { display:flex; flex-direction:column; gap:10px; }
+  .user-item { display:flex; align-items:center; gap:12px; background:var(--white); border-radius:var(--radius-sm); padding:12px 16px; box-shadow:var(--shadow-sm); }
+  .user-avatar { width:40px; height:40px; border-radius:13px; background:linear-gradient(135deg,var(--purple-light),var(--purple-mid)); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:16px; color:#fff; flex-shrink:0; }
+  .user-name { font-weight:700; font-size:14px; color:var(--text-main); }
+  .user-status { font-size:11px; color:var(--text-sub); font-weight:500; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .user-online-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .user-online-dot.online { background:var(--success); box-shadow:0 0 0 3px rgba(92,184,140,.2); }
+  .user-online-dot.offline { background:var(--gray-400); }
+
+  /* BOTTOM NAV */
+  .bottom-nav { position:absolute; bottom:0; left:0; right:0; background:var(--white); border-radius:24px 24px 0 0; padding:14px 20px 18px; display:flex; justify-content:space-around; align-items:center; box-shadow:0 -4px 24px rgba(91,79,207,.12); z-index:10; min-height:70px; }
+  .nav-item { display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; padding:6px 16px; border-radius:14px; transition:.2s; border:none; background:transparent; }
+  .nav-item.active { background:var(--purple-pale); }
+  .nav-item svg { width:22px; height:22px; color:var(--gray-400); }
+  .nav-label { font-size:10px; font-weight:700; color:var(--gray-400); }
+  .nav-item.active svg { color:var(--purple-deep); }
+  .nav-item.active .nav-label { color:var(--purple-deep); }
+
+  .section-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .section-title { font-size:16px; font-weight:800; color:var(--text-main); }
+  .section-count { font-size:12px; color:var(--text-sub); font-weight:600; }
+
+  /* MODAL */
+  .modal-overlay { position:fixed; inset:0; background:rgba(45,39,86,.5); backdrop-filter:blur(4px); z-index:100; display:none; align-items:flex-end; justify-content:center; }
+  .modal-overlay.show { display:flex; }
+  .modal-sheet { background:var(--white); border-radius:28px 28px 0 0; padding:24px 24px 40px; width:100%; max-width:400px; animation:slideUp .3s ease; }
+  @keyframes slideUp { from{transform:translateY(100%)}to{transform:translateY(0)} }
+  .modal-handle { width:40px; height:4px; background:var(--gray-200); border-radius:2px; margin:0 auto 20px; }
+  .modal-title { font-family:'Poppins',sans-serif; font-size:18px; font-weight:700; color:var(--text-main); margin-bottom:6px; }
+  .modal-sub { font-size:14px; color:var(--text-sub); margin-bottom:24px; line-height:1.55; white-space:pre-line; }
+  .modal-btns { display:flex; gap:12px; }
+  .btn-cancel { flex:1; padding:14px; background:var(--gray-200); border:none; border-radius:var(--radius-sm); font-family:'Nunito',sans-serif; font-size:15px; font-weight:700; color:var(--text-sub); cursor:pointer; }
+  .btn-confirm { flex:1; padding:14px; background:linear-gradient(135deg,var(--purple-deep),var(--purple-mid)); border:none; border-radius:var(--radius-sm); font-family:'Nunito',sans-serif; font-size:15px; font-weight:800; color:#fff; cursor:pointer; box-shadow:0 4px 14px rgba(91,79,207,.3); }
+  .btn-confirm.danger { background:linear-gradient(135deg,#E87878,#F0A0A0); box-shadow:0 4px 14px rgba(232,120,120,.3); }
+
+  /* TOAST */
+  .toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--gray-800); color:#fff; padding:12px 20px; border-radius:30px; font-size:13px; font-weight:700; opacity:0; transition:.3s; pointer-events:none; z-index:999; white-space:nowrap; max-width:90%; text-align:center; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+  ::-webkit-scrollbar { width:0; }
+</style>
+</head>
+<body>
+<div class="phone-wrapper">
+
+<!-- SPLASH -->
+<div class="screen active" id="splash">
+  <div class="splash-icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+  </div>
+  <div class="splash-title">Sala Principal</div>
+  <div class="splash-sub">Controle de uso de ambientes</div>
+  <div class="splash-dot"></div>
+</div>
+
+<!-- AUTH -->
+<div class="screen" id="auth">
+  <div class="auth-header">
+    <div class="auth-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+    </div>
+    <h1>Sala Principal</h1>
+    <p>Gerencie o uso dos ambientes</p>
+  </div>
+  <div class="auth-tabs">
+    <button class="auth-tab active" onclick="switchTab('login')">Entrar</button>
+    <button class="auth-tab" onclick="switchTab('register')">Cadastrar</button>
+  </div>
+  <div class="auth-form">
+    <div class="auth-panel active" id="panel-login">
+      <div class="field-wrap">
+        <div class="field-label">Usuário</div>
+        <input class="field-input" id="login-user" type="text" placeholder="Seu nome de usuário">
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">Senha</div>
+        <input class="field-input" id="login-pass" type="password" placeholder="Sua senha">
+      </div>
+      <div class="error-msg" id="login-error"></div>
+      <button class="btn-primary" onclick="doLogin()">Entrar</button>
+    </div>
+    <div class="auth-panel" id="panel-register">
+      <div class="field-wrap">
+        <div class="field-label">Nome de usuário</div>
+        <input class="field-input" id="reg-user" type="text" placeholder="Escolha um nome">
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">Senha</div>
+        <input class="field-input" id="reg-pass" type="password" placeholder="Crie uma senha">
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">Confirmar senha</div>
+        <input class="field-input" id="reg-pass2" type="password" placeholder="Repita a senha">
+      </div>
+      <div class="error-msg" id="reg-error"></div>
+      <div class="success-msg" id="reg-success"></div>
+      <button class="btn-primary" onclick="doRegister()">Criar conta</button>
+    </div>
+  </div>
+</div>
+
+<!-- HOME -->
+<div class="screen" id="home">
+  <div class="home-header">
+    <div class="home-header-top">
+      <div>
+        <div class="greeting">Olá,</div>
+        <div class="username-display" id="display-name">—</div>
+      </div>
+      <button class="logout-btn" onclick="doLogout()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="sector-badge">
+      <div class="sector-badge-dot" id="header-dot" style="background:#5CB88C"></div>
+      <span id="header-status-text">Carregando...</span>
+    </div>
+  </div>
+
+  <div class="home-page active" id="page-sala">
+    <div class="home-body">
+
+      <!-- STATUS GERAL -->
+      <div class="status-card">
+        <div class="status-card-title">Status da Sala Principal</div>
+        <div class="sector-status-row livre" id="sector-status-row">
+          <div class="sector-status-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#2E8B57" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+          <div class="sector-status-info">
+            <div class="sector-status-label" id="sector-status-label">Sala Livre</div>
+            <div class="sector-status-sub" id="sector-status-sub">Nenhum ambiente em uso</div>
+          </div>
+          <div class="status-pill" id="status-pill">LIVRE</div>
+        </div>
+      </div>
+
+      <!-- COZINHA + TV -->
+      <div>
+        <div class="section-head"><div class="section-title">Sala Principal</div></div>
+        <div class="zones-grid">
+          <div class="zone-card cozinha">
+            <div class="zone-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#F0A04B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>
+              </svg>
+            </div>
+            <div class="zone-name">Cozinha</div>
+            <div class="zone-user-info" id="cozinha-user-info"><div class="zone-free-label">Disponível</div></div>
+            <button class="zone-action-btn usar" id="btn-cozinha" onclick="openZoneModal('cozinha')">Usar</button>
+          </div>
+          <div class="zone-card tv">
+            <div class="zone-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#7B6FE8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/>
+              </svg>
+            </div>
+            <div class="zone-name">TV</div>
+            <div class="zone-user-info" id="tv-user-info"><div class="zone-free-label">Disponível</div></div>
+            <button class="zone-action-btn usar" id="btn-tv" onclick="openZoneModal('tv')">Usar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- USO EXCLUSIVO -->
+      <div>
+        <div class="section-head"><div class="section-title">Uso Exclusivo</div></div>
+
+        <!-- LAVAR: item compartilhável, aparece antes do aviso -->
+        <div class="excl-list" id="excl-lavar-list" style="margin-bottom:12px"></div>
+
+        <div class="warning-banner">
+          <div class="warning-emoji">⚠️</div>
+          <div class="warning-text">
+            <strong>Atenção!</strong>
+            Somente use <u>uma</u> das opções abaixo por vez. Esses itens não podem ser compartilhados ao mesmo tempo.
+          </div>
+        </div>
+        <div class="excl-list" id="excl-list"></div>
+      </div>
+
+      <!-- USUARIOS -->
+      <div>
+        <div class="section-head">
+          <div class="section-title">Usuários</div>
+          <div class="section-count" id="users-count">0 usuários</div>
+        </div>
+        <div class="users-list" id="users-list"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <button class="nav-item active" id="nav-sala" onclick="navTo('sala')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      <span class="nav-label">Sala</span>
+    </button>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="zone-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-title">Confirmar</div>
+    <div class="modal-sub" id="modal-sub"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-confirm" id="modal-confirm-btn" onclick="confirmAction()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+</div>
+
+<script>
+// shared: true = pode usar junto com outros itens (sem restrição de exclusividade)
+const EXCL_ITEMS = [
+  {
+    id: 'lavar',
+    name: 'Máquina de Lavar',
+    shared: true,
+    bgColor: '#E8F9FB', iconColor: '#2AA0B8', borderColor: '#5BC4D8',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="3"/><circle cx="12" cy="14" r="4"/><path d="M7 7h2M12 7h2"/></svg>`
+  },
+  {
+    id: 'secar',
+    name: 'Máquina de Secar',
+    shared: false,
+    bgColor: '#EBF3FF', iconColor: '#3B7FD8', borderColor: '#5B9CF0',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="3"/><circle cx="12" cy="13" r="5"/><circle cx="12" cy="13" r="2"/><line x1="7" y1="6" x2="7.01" y2="6" stroke-width="3"/><line x1="11" y1="6" x2="14" y2="6"/></svg>`
+  },
+  {
+    id: 'pao',
+    name: 'Máquina de Pão',
+    shared: false,
+    bgColor: '#FDF5E6', iconColor: '#B8860B', borderColor: '#D4A84B',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="12" rx="4"/><path d="M8 8V6a4 4 0 018 0v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>`
+  },
+  {
+    id: 'panela',
+    name: 'Panela de Pressão',
+    shared: false,
+    bgColor: '#FFF0EC', iconColor: '#CC5030', borderColor: '#E8785A',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14v9a2 2 0 01-2 2H7a2 2 0 01-2-2V8z"/><line x1="3" y1="8" x2="21" y2="8"/><path d="M10 4h4"/><line x1="15" y1="4" x2="15" y2="8"/><line x1="9" y1="4" x2="9" y2="8"/></svg>`
+  },
+  {
+    id: 'banho',
+    name: 'Tomando Banho',
+    shared: false,
+    bgColor: '#F0EEFF', iconColor: '#5B4FCF', borderColor: '#7B6FE8',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16a1 1 0 011 1v3a4 4 0 01-4 4H7a4 4 0 01-4-4v-3a1 1 0 011-1z"/><path d="M6 12V6a2 2 0 012-2h3v2"/><line x1="4" y1="21" x2="4" y2="22"/><line x1="20" y1="21" x2="20" y2="22"/></svg>`
+  }
+];
+
+let state = {
+  users: [], loggedIn: null,
+  cozinha: null, tv: null,
+  excl: {}
+};
+
+function loadState() {
+  try {
+    const s = localStorage.getItem('salaPrincipalV2');
+    if (s) {
+      state = { ...state, ...JSON.parse(s) };
+    }
+  } catch(e) {}
+  EXCL_ITEMS.forEach(i => { if (!(i.id in state.excl)) state.excl[i.id] = null; });
+}
+
+function saveState() {
+  localStorage.setItem('salaPrincipalV2', JSON.stringify(state));
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => { s.classList.remove('active'); s.style.transform='translateX(30px)'; });
+  const el = document.getElementById(id);
+  el.classList.add('active'); el.style.transform='';
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active',(i===0&&tab==='login')||(i===1&&tab==='register')));
+  document.getElementById('panel-login').classList.toggle('active',tab==='login');
+  document.getElementById('panel-register').classList.toggle('active',tab==='register');
+}
+
+function doLogin() {
+  const user = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const err = document.getElementById('login-error');
+  err.classList.remove('show');
+  if (!user||!pass) { err.textContent='Preencha todos os campos.'; err.classList.add('show'); return; }
+  const found = state.users.find(u=>u.name.toLowerCase()===user.toLowerCase()&&u.pass===pass);
+  if (!found) { err.textContent='Usuário ou senha incorretos.'; err.classList.add('show'); return; }
+  state.loggedIn = found.name; saveState(); enterHome();
+}
+
+function doRegister() {
+  const user = document.getElementById('reg-user').value.trim();
+  const pass = document.getElementById('reg-pass').value;
+  const pass2 = document.getElementById('reg-pass2').value;
+  const err = document.getElementById('reg-error');
+  const suc = document.getElementById('reg-success');
+  err.classList.remove('show'); suc.classList.remove('show');
+  if (!user||!pass||!pass2) { err.textContent='Preencha todos os campos.'; err.classList.add('show'); return; }
+  if (user.length<3) { err.textContent='Nome deve ter ao menos 3 caracteres.'; err.classList.add('show'); return; }
+  if (pass.length<4) { err.textContent='Senha deve ter ao menos 4 caracteres.'; err.classList.add('show'); return; }
+  if (pass!==pass2) { err.textContent='As senhas não coincidem.'; err.classList.add('show'); return; }
+  if (state.users.length>=5) { err.textContent='Limite de 5 usuários atingido.'; err.classList.add('show'); return; }
+  if (state.users.find(u=>u.name.toLowerCase()===user.toLowerCase())) { err.textContent='Este nome já está em uso.'; err.classList.add('show'); return; }
+  state.users.push({name:user,pass}); saveState();
+  suc.textContent=`Conta "${user}" criada! Faça login.`; suc.classList.add('show');
+  document.getElementById('reg-user').value='';
+  document.getElementById('reg-pass').value='';
+  document.getElementById('reg-pass2').value='';
+  setTimeout(()=>switchTab('login'),1200);
+}
+
+function enterHome() {
+  document.getElementById('display-name').textContent = state.loggedIn;
+  showScreen('home'); renderHome();
+}
+
+function doLogout() {
+  state.loggedIn = null; saveState();
+  document.getElementById('login-user').value='';
+  document.getElementById('login-pass').value='';
+  document.getElementById('login-error').classList.remove('show');
+  showScreen('auth');
+}
+
+function renderHome() {
+  const me = state.loggedIn;
+
+  // Collect all active usages for status summary
+  const activeParts = [];
+  if (state.cozinha) activeParts.push(`${state.cozinha} na Cozinha`);
+  if (state.tv) activeParts.push(`${state.tv} na TV`);
+  EXCL_ITEMS.forEach(i => { if (state.excl[i.id]) activeParts.push(`${state.excl[i.id]} · ${i.name}`); });
+  const total = activeParts.length;
+
+  // STATUS HEADER
+  const row = document.getElementById('sector-status-row');
+  const label = document.getElementById('sector-status-label');
+  const sub = document.getElementById('sector-status-sub');
+  const pill = document.getElementById('status-pill');
+  const dot = document.getElementById('header-dot');
+  const headerText = document.getElementById('header-status-text');
+  row.className = 'sector-status-row';
+
+  if (total === 0) {
+    row.classList.add('livre');
+    label.textContent = 'Sala Livre';
+    sub.textContent = 'Nenhum ambiente em uso';
+    pill.textContent = 'LIVRE';
+    dot.style.background = '#5CB88C';
+    headerText.textContent = 'Sala Principal · Livre';
+  } else if (total >= 2) {
+    row.classList.add('total');
+    label.textContent = 'Em uso total';
+    sub.textContent = activeParts.join('\n');
+    pill.textContent = 'TOTAL';
+    dot.style.background = '#9B8FF0';
+    headerText.textContent = 'Sala Principal · Em uso total';
+  } else {
+    row.classList.add('parcial');
+    label.textContent = 'Uso parcial';
+    sub.textContent = activeParts[0];
+    pill.textContent = 'PARCIAL';
+    dot.style.background = '#F0A04B';
+    headerText.textContent = 'Sala Principal · Parcial';
+  }
+
+  // COZINHA
+  const cozInfo = document.getElementById('cozinha-user-info');
+  const btnCoz = document.getElementById('btn-cozinha');
+  if (state.cozinha) {
+    cozInfo.innerHTML = `<div class="zone-user-chip occupied"><div class="zone-user-dot"></div>${state.cozinha}</div>`;
+    if (state.cozinha===me) { btnCoz.textContent='Liberar'; btnCoz.className='zone-action-btn liberar'; btnCoz.onclick=()=>openZoneModal('cozinha'); }
+    else { btnCoz.textContent='Em uso'; btnCoz.className='zone-action-btn disabled'; btnCoz.onclick=null; }
+  } else {
+    cozInfo.innerHTML=`<div class="zone-free-label">Disponível</div>`;
+    btnCoz.textContent='Usar'; btnCoz.className='zone-action-btn usar'; btnCoz.onclick=()=>openZoneModal('cozinha');
+  }
+
+  // TV
+  const tvInfo = document.getElementById('tv-user-info');
+  const btnTv = document.getElementById('btn-tv');
+  if (state.tv) {
+    tvInfo.innerHTML = `<div class="zone-user-chip occupied"><div class="zone-user-dot"></div>${state.tv}</div>`;
+    if (state.tv===me) { btnTv.textContent='Liberar'; btnTv.className='zone-action-btn liberar'; btnTv.onclick=()=>openZoneModal('tv'); }
+    else { btnTv.textContent='Em uso'; btnTv.className='zone-action-btn disabled'; btnTv.onclick=null; }
+  } else {
+    tvInfo.innerHTML=`<div class="zone-free-label">Disponível</div>`;
+    btnTv.textContent='Usar'; btnTv.className='zone-action-btn usar'; btnTv.onclick=()=>openZoneModal('tv');
+  }
+
+  // EXCLUSIVE ITEMS
+  // myExcl = item exclusivo (shared:false) que EU estou usando
+  const myExcl = EXCL_ITEMS.find(i => !i.shared && state.excl[i.id] === me);
+  const exclLavarList = document.getElementById('excl-lavar-list');
+  const exclList = document.getElementById('excl-list');
+  exclLavarList.innerHTML = '';
+  exclList.innerHTML = '';
+
+  EXCL_ITEMS.forEach(item => {
+    const usedBy = state.excl[item.id];
+    const isMe = usedBy === me;
+    const isFree = !usedBy;
+    // shared items can always be used if free; exclusive items block each other
+    const canUse = isFree && (item.shared || !myExcl);
+
+    let btnClass = 'excl-btn';
+    let btnText, onclick = '';
+
+    if (isMe) {
+      btnClass += ' liberar'; btnText = 'Liberar'; onclick = `openExclModal('${item.id}')`;
+    } else if (!isFree) {
+      btnClass += ' disabled'; btnText = 'Em uso';
+    } else if (!canUse) {
+      btnClass += ' disabled'; btnText = 'Usar';
+    } else {
+      btnClass += ' usar'; btnText = 'Usar'; onclick = `openExclModal('${item.id}')`;
+    }
+
+    const card = `
+      <div class="excl-card${usedBy?' in-use':''}">
+        <div class="excl-icon" style="background:${item.bgColor};color:${item.iconColor}">${item.icon}</div>
+        <div class="excl-info">
+          <div class="excl-name">${item.name}</div>
+          <div class="excl-user">${usedBy ? '👤 '+usedBy : 'Disponível'}</div>
+        </div>
+        <button class="${btnClass}" ${onclick?`onclick="${onclick}"`:''}>${btnText}</button>
+      </div>`;
+
+    if (item.shared) {
+      exclLavarList.innerHTML += card;
+    } else {
+      exclList.innerHTML += card;
+    }
+  });
+
+  // USERS LIST
+  const list = document.getElementById('users-list');
+  const count = document.getElementById('users-count');
+  count.textContent = `${state.users.length} usuário${state.users.length!==1?'s':''}`;
+  list.innerHTML = '';
+  state.users.forEach(u => {
+    const isMe = u.name === me;
+    const acts = [];
+    if (state.cozinha===u.name) acts.push('Cozinha');
+    if (state.tv===u.name) acts.push('TV');
+    EXCL_ITEMS.forEach(i => { if(state.excl[i.id]===u.name) acts.push(i.name); });
+    const isActive = acts.length > 0;
+    list.innerHTML += `
+      <div class="user-item">
+        <div class="user-avatar">${u.name[0].toUpperCase()}</div>
+        <div style="flex:1;min-width:0">
+          <div class="user-name">${u.name}${isMe?' (você)':''}</div>
+          <div class="user-status">${acts.length?acts.join(' · '):'Nenhum ambiente'}</div>
+        </div>
+        <div class="user-online-dot ${isActive?'online':'offline'}"></div>
+      </div>`;
+  });
+}
+
+// ===== MODAL =====
+let pendingAction = null;
+
+function openZoneModal(zone) {
+  const me = state.loggedIn;
+  const current = zone==='cozinha' ? state.cozinha : state.tv;
+  const zoneName = zone==='cozinha' ? 'Cozinha' : 'TV';
+  const releasing = current === me;
+  pendingAction = { type:'zone', zone, releasing };
+  _showModal(
+    releasing ? `Liberar ${zoneName}?` : `Usar ${zoneName}?`,
+    releasing ? `Você será removido do ambiente ${zoneName}.` : `Você será registrado como usuário da ${zoneName}.`,
+    releasing
+  );
+}
+
+function openExclModal(itemId) {
+  const me = state.loggedIn;
+  const item = EXCL_ITEMS.find(i=>i.id===itemId);
+  const releasing = state.excl[itemId] === me;
+  pendingAction = { type:'excl', itemId, releasing };
+  _showModal(
+    releasing ? `Liberar ${item.name}?` : `Usar ${item.name}?`,
+    releasing
+      ? `Você irá liberar o uso de:\n${item.name}`
+      : `Você será registrado como usuário de:\n${item.name}\n\n⚠️ Somente um item exclusivo por vez!`,
+    releasing
+  );
+}
+
+function _showModal(title, sub, isDanger) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-sub').textContent = sub;
+  const btn = document.getElementById('modal-confirm-btn');
+  btn.textContent = isDanger ? 'Liberar' : 'Confirmar';
+  btn.className = isDanger ? 'btn-confirm danger' : 'btn-confirm';
+  document.getElementById('zone-modal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('zone-modal').classList.remove('show');
+  pendingAction = null;
+}
+
+function confirmAction() {
+  const me = state.loggedIn;
+  if (!pendingAction) return;
+  if (pendingAction.type === 'zone') {
+    const { zone, releasing } = pendingAction;
+    if (zone==='cozinha') { state.cozinha = releasing ? null : me; showToast(releasing?'Cozinha liberada!':'Usando a Cozinha ✓'); }
+    else { state.tv = releasing ? null : me; showToast(releasing?'TV liberada!':'Usando a TV ✓'); }
+  } else {
+    const { itemId, releasing } = pendingAction;
+    const item = EXCL_ITEMS.find(i=>i.id===itemId);
+    state.excl[itemId] = releasing ? null : me;
+    showToast(releasing ? `${item.name} liberada!` : `Usando: ${item.name} ✓`);
+  }
+  saveState(); closeModal(); renderHome();
+}
+
+function navTo(page) {
+  document.querySelectorAll('.home-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.getElementById('nav-'+page).classList.add('active');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+loadState();
+setTimeout(() => {
+  if (state.loggedIn) enterHome();
+  else showScreen('auth');
+}, 1400);
+</script>
+</body>
+</html>
